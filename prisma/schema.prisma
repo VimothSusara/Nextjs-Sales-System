@@ -1,0 +1,85 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  role      Role
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  MANAGER
+  SALES_REP
+  ACCOUNTANT
+  CUSTOMER
+}
+
+model Unit {
+  id           Int     @id @default(autoincrement())
+  name         String  @unique
+  abbreviation String
+  active       Boolean @default(true)
+  items        Item[]
+}
+
+model Category {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  items     Item[]
+}
+
+model Item {
+  id           Int       @id @default(autoincrement())
+  name         String
+  sku          String?
+  description  String?
+  itemType     ITEM_TYPE @default(NORMAL)
+  unitId       Int
+  categoryId   Int
+  barcode      String?   @unique
+  reorderLevel Decimal   @default(10)
+  imageUrl     String?
+  active       Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  unit     Unit     @relation(fields: [unitId], references: [id])
+  category Category @relation(fields: [categoryId], references: [id])
+}
+
+enum ITEM_TYPE {
+  NORMAL
+  SERIAL
+  SERVICE
+}
+
+model Supplier {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String?
+  phone     String
+  address   String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
