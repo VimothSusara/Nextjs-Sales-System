@@ -1,5 +1,9 @@
+"use client"
+
 import { ColumnDef } from "@tanstack/react-table";
 import { Item } from "@prisma/client";
+
+import { DropdownMenu } from '@/components/ui/dropdown-menu'
 
 export const itemColumns: ColumnDef<Item>[] = [
     {
@@ -52,8 +56,10 @@ export const itemColumns: ColumnDef<Item>[] = [
         header: "Status",
         minSize: 100,
     },
-    // {
-    //     accessorKey: "actions",
-    //     header: "Actions",
-    // }
+    {
+        id: "actions",
+        cell: ({ row }) => {
+            const item = row.original;
+        }
+    }
 ];

@@ -5,7 +5,6 @@ import {
   flexRender,
   getCoreRowModel,
   useReactTable,
-  getPaginationRowModel,
 } from "@tanstack/react-table";
 
 import {
@@ -17,27 +16,71 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   isLoading?: boolean;
+  total: number;
+  pageIndex: number;
+  pageSize: number;
+  setPagination: React.Dispatch<
+    React.SetStateAction<{ pageIndex: number; pageSize: number }>
+  >;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  total,
+  pageIndex,
+  pageSize,
+  setPagination,
   isLoading,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
     columns,
+    pageCount: Math.ceil(total / pageSize),
+    manualPagination: true,
+    state: {
+      pagination: {
+        pageIndex,
+        pageSize,
+      },
+    },
+    onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
   });
 
   return (
     <div>
+      <div className="flex items-center justify-start my-1 md:my-2">
+        <Select
+          value={pageSize.toString()}
+          onValueChange={(value) =>
+            table.setPageSize(Number(value))
+          }
+        >
+          <SelectTrigger>
+            <SelectValue/>
+          </SelectTrigger>
+          <SelectContent>
+          {[15, 25, 50, 75, 100].map((pageSize) => (
+            <SelectItem key={pageSize} value={pageSize.toString()}>
+              {pageSize}
+            </SelectItem>
+          ))}
+          </SelectContent>
+        </Select>
+      </div>
       <div className="overflow-hidden max-w-full rounded-md border">
         <Table>
           <TableHeader>
@@ -103,23 +146,38 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          Previous
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          Next
-        </Button>
+      <div className="flex items-center justify-between space-x-2 py-4">
+        <div className="text-sm text-muted-foreground">
+          Page {pageIndex + 1} of {Math.ceil(total / pageSize)}
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              setPagination((old) => ({
+                ...old,
+                pageIndex: old.pageIndex - 1,
+              }))
+            }
+            disabled={pageIndex === 0}
+          >
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              setPagination((old) => ({
+                ...old,
+                pageIndex: old.pageIndex + 1,
+              }))
+            }
+            disabled={(pageIndex + 1) * pageSize >= total}
+          >
+            Next
+          </Button>
+        </div>
       </div>
     </div>
   );
